@@ -20,6 +20,22 @@ const candidateYarns = [
   { name: "Bulky (超極太)", m_per_g: 1.3 },
   { name: "Super Bulky (超極太)", m_per_g: 0.8 },
 ];
+const i18nTexts = {
+  ja: {
+    title: "🧶 ひきそろえメーカー｜Strand Maker",
+    description: "目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。",
+    length_label: "📏 糸の長さ（m）",
+    calculate: "候補を計算する",
+    toggle: "English",
+  },
+  en: {
+    title: "🧶 Strand Maker",
+    description: "Find strand combinations that match your target yarn thickness.",
+    length_label: "📏 Length (m)",
+    calculate: "Calculate combinations",
+    toggle: "日本語",
+  },
+};
 
 // ---- 組み合わせ生成（重複あり、順序なし） ----
 function combinationsWithReplacement(array, length) {
@@ -72,6 +88,36 @@ function getStrandSuggestions(targetDensity, yarns, maxStrands, tolerance = 0.5,
     (a, b) => Math.abs(a.avgDensity - targetDensity) - Math.abs(b.avgDensity - targetDensity)
   );
 }
+let currentLang = localStorage.getItem("lang") || "ja";
+
+function applyLanguage(lang) {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (i18nTexts[lang][key]) {
+      el.textContent = i18nTexts[lang][key];
+    }
+  });
+
+  const toggleBtn = document.getElementById("langToggle");
+  if (toggleBtn) {
+    toggleBtn.textContent = i18nTexts[lang].toggle;
+  }
+
+  localStorage.setItem("lang", lang);
+  currentLang = lang;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyLanguage(currentLang);
+
+  const toggleBtn = document.getElementById("langToggle");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      const next = currentLang === "ja" ? "en" : "ja";
+      applyLanguage(next);
+    });
+  }
+});
 
 // ---- UI wiring ----
 const select = document.getElementById("yarn_weight");

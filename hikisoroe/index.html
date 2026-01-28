@@ -59,13 +59,19 @@
 
 <body>
   <div class="strand-container">
+      <div style="text-align:right; margin-bottom:1em;">
+        <button id="langToggle" style="font-size:0.9rem;">
+          English
+        </button>
+      </div>
     <h1>🧶 ひきそろえメーカー｜Strand Maker</h1>
-    <p class="description">目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。</p>
+    <p class="description" data-i18n="description">
+      目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。
+    </p>
 
     <form id="strand-form">
       <div class="input-group">
-        <label for="yarn_weight">📦 目標とする糸の太さ</label>
-        <select id="yarn_weight">
+          <label for="length" data-i18n="length_label">📏 糸の長さ（m）</label>        <select id="yarn_weight">
           <option value="" disabled selected>-- 選択してください --</option>
           <option value="lace">Lace (極細)</option>
           <option value="fingering">Fingering (中細)</option>
@@ -109,7 +115,14 @@
         </select>
       </div>
 
-      <button type="button" id="calculate-btn" class="btn-calculate">候補を計算する</button>
+      <button
+        type="button"
+        id="calculate-btn"
+        class="btn-calculate"
+        data-i18n="calculate"
+      >
+        候補を計算する
+      </button>
     </form>
 
     <div class="results">
