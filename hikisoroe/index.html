@@ -149,139 +149,180 @@
     </footer>
   </div>
 
-<script>
-/* ===== i18n ===== */
-const i18n = {
-  ja: {
-    title: "🧶 ひきそろえメーカー｜Strand Maker",
-    description: "目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。",
-    yarnWeight: "📦 目標とする糸の太さ",
-    length: "📏 糸の長さ（m）",
-    weight: "⚖️ 糸の重さ（g）",
-    density: "🎯 目標密度（m/g）",
-    hintDensity: "長さ ÷ 重さ で自動計算されます。",
-    maxStrands: "🔢 最大本数",
-    comboRule: "🧶 組み合わせの種類",
-    comboAny: "制限なし",
-    comboSame: "同じ種類のみ",
-    comboDiff: "すべて異なる種類",
-    calculate: "候補を計算する",
-    resultsTitle: "🧮 提案された組み合わせ",
-    initialResult: "条件を入力して、ボタンを押してください。",
-    selectPlaceholder: "-- 選択してください --",
-    footer: "by LemonJellyPool"
-  },
-  en: {
-    title: "🧶 Strand Maker",
-    description: "Find strand combinations that match your target yarn thickness.",
-    yarnWeight: "📦 Target yarn weight",
-    length: "📏 Length (m)",
-    weight: "⚖️ Weight (g)",
-    density: "🎯 Target density (m/g)",
-    hintDensity: "Automatically calculated as length ÷ weight.",
-    maxStrands: "🔢 Max strands",
-    comboRule: "🧶 Combination rule",
-    comboAny: "Any",
-    comboSame: "Same type only",
-    comboDiff: "All different",
-    calculate: "Calculate combinations",
-    resultsTitle: "🧮 Suggested combinations",
-    initialResult: "Enter values and press the button.",
-    selectPlaceholder: "-- Select --",
-    footer: "by LemonJellyPool"
+  <script>
+  /* ===== i18n ===== */
+  const i18n = {
+    ja: {
+      title: "🧶 ひきそろえメーカー｜Strand Maker",
+      description: "目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。",
+      yarnWeight: "📦 目標とする糸の太さ",
+      length: "📏 糸の長さ（m）",
+      weight: "⚖️ 糸の重さ（g）",
+      density: "🎯 目標密度（m/g）",
+      hintDensity: "長さ ÷ 重さ で自動計算されます。",
+      maxStrands: "🔢 最大本数",
+      comboRule: "🧶 組み合わせの種類",
+      comboAny: "制限なし",
+      comboSame: "同じ種類のみ",
+      comboDiff: "すべて異なる種類",
+      calculate: "候補を計算する",
+      resultsTitle: "🧮 提案された組み合わせ",
+      initialResult: "条件を入力して、ボタンを押してください。",
+      selectPlaceholder: "-- 選択してください --",
+      footer: "by LemonJellyPool"
+    },
+    en: {
+      title: "🧶 Strand Maker",
+      description: "Find strand combinations that match your target yarn thickness.",
+      yarnWeight: "📦 Target yarn weight",
+      length: "📏 Length (m)",
+      weight: "⚖️ Weight (g)",
+      density: "🎯 Target density (m/g)",
+      hintDensity: "Automatically calculated as length ÷ weight.",
+      maxStrands: "🔢 Max strands",
+      comboRule: "🧶 Combination rule",
+      comboAny: "Any",
+      comboSame: "Same type only",
+      comboDiff: "All different",
+      calculate: "Calculate combinations",
+      resultsTitle: "🧮 Suggested combinations",
+      initialResult: "Enter values and press the button.",
+      selectPlaceholder: "-- Select --",
+      footer: "by LemonJellyPool"
+    }
+  };
+
+  function setLang(lang) {
+    localStorage.setItem("lang", lang);
+    applyLang(lang);
   }
-};
 
-function setLang(lang) {
-  localStorage.setItem("lang", lang);
-  applyLang(lang);
-}
+  function applyLang(lang) {
+    const dict = i18n[lang];
+    document.documentElement.lang = lang;
 
-function applyLang(lang) {
-  const dict = i18n[lang];
-  document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.dataset.i18n;
-    if (dict[key]) el.textContent = dict[key];
-  });
-}
+    // data-i18n の文字を置換
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      if (dict[key]) el.textContent = dict[key];
+    });
 
-applyLang(localStorage.getItem("lang") || "ja");
-
-/* ===== logic (元のまま) ===== */
-const yarnMaster = {
-  lace: { example_m: 700, example_g: 100 },
-  fingering: { example_m: 400, example_g: 100 },
-  sport: { example_m: 330, example_g: 100 },
-  dk: { example_m: 260, example_g: 100 },
-  worsted: { example_m: 220, example_g: 100 },
-  aran: { example_m: 170, example_g: 100 },
-  bulky: { example_m: 110, example_g: 100 },
-  super_bulky: { example_m: 80, example_g: 100 }
-};
-
-const candidateYarns = [
-  { name: "Lace", m_per_g: 7.0 },
-  { name: "Fingering", m_per_g: 4.0 },
-  { name: "Sport", m_per_g: 3.2 },
-  { name: "DK", m_per_g: 2.7 },
-  { name: "Worsted", m_per_g: 2.2 },
-  { name: "Aran", m_per_g: 1.8 },
-  { name: "Bulky", m_per_g: 1.3 },
-  { name: "Super Bulky", m_per_g: 0.8 }
-];
-
-function combinationsWithReplacement(arr, len) {
-  const res = [];
-  function backtrack(combo, start) {
-    if (combo.length === len) return res.push(combo);
-    for (let i = start; i < arr.length; i++) backtrack([...combo, arr[i]], i);
-  }
-  backtrack([], 0);
-  return res;
-}
-
-function getSuggestions(target, maxStrands) {
-  const suggestions = [];
-  const yarns = candidateYarns.map(y => ({ ...y, gpm: 1 / y.m_per_g }));
-  for (let r = 2; r <= maxStrands; r++) {
-    for (const combo of combinationsWithReplacement(yarns, r)) {
-      const sum = combo.reduce((s, y) => s + y.gpm, 0);
-      const density = 1 / sum;
-      if (Math.abs(density - target) <= 0.5) {
-        suggestions.push(`${combo.map(y => y.name).join(" + ")} (${density.toFixed(2)} m/g)`);
-      }
+    // <meta name="description"> も切り替えたいなら（任意）
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", dict.description);
     }
   }
-  return suggestions;
-}
 
-function updateDensity() {
-  const m = +length.value;
-  const g = +weight.value;
-  density.value = (m && g) ? (m / g).toFixed(2) : "";
-}
+  /* ===== logic ===== */
+  const yarnMaster = {
+    lace: { example_m: 700, example_g: 100 },
+    fingering: { example_m: 400, example_g: 100 },
+    sport: { example_m: 330, example_g: 100 },
+    dk: { example_m: 260, example_g: 100 },
+    worsted: { example_m: 220, example_g: 100 },
+    aran: { example_m: 170, example_g: 100 },
+    bulky: { example_m: 110, example_g: 100 },
+    super_bulky: { example_m: 80, example_g: 100 }
+  };
 
-yarn_weight.onchange = () => {
-  const v = yarn_weight.value;
-  if (yarnMaster[v]) {
-    length.value = yarnMaster[v].example_m;
-    weight.value = yarnMaster[v].example_g;
-    updateDensity();
+  const candidateYarns = [
+    { name: "Lace", m_per_g: 7.0 },
+    { name: "Fingering", m_per_g: 4.0 },
+    { name: "Sport", m_per_g: 3.2 },
+    { name: "DK", m_per_g: 2.7 },
+    { name: "Worsted", m_per_g: 2.2 },
+    { name: "Aran", m_per_g: 1.8 },
+    { name: "Bulky", m_per_g: 1.3 },
+    { name: "Super Bulky", m_per_g: 0.8 }
+  ];
+
+  function combinationsWithReplacement(arr, len) {
+    const res = [];
+    function backtrack(combo, start) {
+      if (combo.length === len) return res.push(combo);
+      for (let i = start; i < arr.length; i++) backtrack([...combo, arr[i]], i);
+    }
+    backtrack([], 0);
+    return res;
   }
-};
 
-length.oninput = weight.oninput = updateDensity;
+  function getSuggestions(target, maxStrands) {
+    const suggestions = [];
+    const yarns = candidateYarns.map(y => ({ ...y, gpm: 1 / y.m_per_g }));
 
-calculate-btn.onclick = () => {
-  const d = +density.value;
-  results-list.innerHTML = "";
-  if (!d) return;
-  const res = getSuggestions(d, +max_strands.value);
-  results-list.innerHTML = res.length
-    ? res.map(r => `<li>${r}</li>`).join("")
-    : `<li>No combinations found.</li>`;
-};
-</script>
+    for (let r = 2; r <= maxStrands; r++) {
+      for (const combo of combinationsWithReplacement(yarns, r)) {
+        const sum = combo.reduce((s, y) => s + y.gpm, 0);
+        const density = 1 / sum;
+        if (Math.abs(density - target) <= 0.5) {
+          suggestions.push({
+            text: `${combo.map(y => y.name).join(" + ")} (${density.toFixed(2)} m/g)`,
+            diff: Math.abs(density - target)
+          });
+        }
+      }
+    }
+
+    // 誤差が小さい順に
+    suggestions.sort((a, b) => a.diff - b.diff);
+    return suggestions;
+  }
+
+  /* ===== DOM & init ===== */
+  document.addEventListener("DOMContentLoaded", () => {
+    // i18n 初期適用
+    applyLang(localStorage.getItem("lang") || "ja");
+
+    // DOMを安全に取得
+    const select = document.getElementById("yarn_weight");
+    const lengthInput = document.getElementById("length");
+    const weightInput = document.getElementById("weight");
+    const densityInput = document.getElementById("density");
+    const maxStrandsInput = document.getElementById("max_strands");
+    const calculateBtn = document.getElementById("calculate-btn");
+    const resultsList = document.getElementById("results-list");
+
+    function updateDensity() {
+      const m = parseFloat(lengthInput.value);
+      const g = parseFloat(weightInput.value);
+      densityInput.value = (m > 0 && g > 0) ? (m / g).toFixed(2) : "";
+    }
+
+    function renderResults() {
+      const d = parseFloat(densityInput.value);
+      resultsList.innerHTML = "";
+
+      if (!d || d <= 0) {
+        resultsList.innerHTML = `<li>${i18n[localStorage.getItem("lang") || "ja"].initialResult}</li>`;
+        return;
+      }
+
+      const maxStrands = parseInt(maxStrandsInput.value, 10);
+      const res = getSuggestions(d, maxStrands);
+
+      resultsList.innerHTML = res.length
+        ? res.map(r => `<li>${r.text}</li>`).join("")
+        : `<li>No combinations found.</li>`;
+    }
+
+    select.addEventListener("change", () => {
+      const v = select.value;
+      if (yarnMaster[v]) {
+        lengthInput.value = yarnMaster[v].example_m;
+        weightInput.value = yarnMaster[v].example_g;
+        updateDensity();
+      }
+    });
+
+    lengthInput.addEventListener("input", updateDensity);
+    weightInput.addEventListener("input", updateDensity);
+    calculateBtn.addEventListener("click", renderResults);
+
+    // 初期計算（任意）
+    updateDensity();
+  });
+  </script>
+
 </body>
 </html>
