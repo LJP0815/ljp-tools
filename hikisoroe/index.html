@@ -3,15 +3,127 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ひきそろえメーカー</title>
+  <title>🧶 ひきそろえメーカー｜Strand Maker</title>
+  <meta name="description" content="目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。" />
+
+  <style>
+    .strand-container {
+      max-width: 800px;
+      margin: 2em auto;
+      padding: 2em;
+      background: #fefefe;
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    h1 { text-align: center; font-size: 2rem; }
+    p.description { text-align: center; color: #666; margin-bottom: 2em; }
+    .input-group { margin-bottom: 1.5em; }
+    .input-group label { font-weight: bold; display: block; margin-bottom: 0.3em; }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 0.5em;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    .hint { font-size: 0.85rem; color: #999; margin-top: 0.3em; }
+    .results { margin-top: 2em; }
+    .results h2 { font-size: 1.2rem; margin-bottom: 1em; border-bottom: 2px solid #eee; padding-bottom: 0.5em; }
+    .results ul { padding-left: 1.2em; }
+    .results li { margin-bottom: 0.5em; }
+    .btn-calculate {
+      display: block;
+      width: 100%;
+      padding: 1em;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 2em;
+    }
+    .btn-calculate:hover { background-color: #0056b3; }
+
+    footer {
+      margin-top: 2.5em;
+      text-align: center;
+      color: #999;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
+
 <body>
-  <main>
-    <h1>ひきそろえメーカー</h1>
-    <p>準備中</p>
-  </main>
+  <div class="strand-container">
+    <h1>🧶 ひきそろえメーカー｜Strand Maker</h1>
+    <p class="description">目標とする糸の太さに近い、手持ち糸の引き揃え候補を提案します。</p>
+
+    <form id="strand-form">
+      <div class="input-group">
+        <label for="yarn_weight">📦 目標とする糸の太さ</label>
+        <select id="yarn_weight">
+          <option value="" disabled selected>-- 選択してください --</option>
+          <option value="lace">Lace (極細)</option>
+          <option value="fingering">Fingering (中細)</option>
+          <option value="sport">Sport (合太)</option>
+          <option value="dk">DK (並太)</option>
+          <option value="worsted">Worsted (並太〜極太)</option>
+          <option value="aran">Aran (極太)</option>
+          <option value="bulky">Bulky (超極太)</option>
+          <option value="super_bulky">Super Bulky (並太〜極太)</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="length">📏 糸の長さ（m）</label>
+        <input type="number" id="length" step="1" placeholder="例: 200">
+      </div>
+
+      <div class="input-group">
+        <label for="weight">⚖️ 糸の重さ（g）</label>
+        <input type="number" id="weight" step="1" placeholder="例: 50">
+      </div>
+
+      <div class="input-group">
+        <label for="density">🎯 目標密度（m/g）</label>
+        <input type="number" id="density" step="0.01" readonly>
+        <p class="hint">長さ ÷ 重さ で自動計算されます。</p>
+      </div>
+
+      <div class="input-group">
+        <label for="max_strands">🔢 最大本数</label>
+        <input type="number" id="max_strands" value="3" min="2" max="5">
+        <p class="hint">何本までの組み合わせを計算するか（2〜5本）</p>
+      </div>
+
+      <div class="input-group">
+        <label for="combo_rule">🧶 組み合わせの種類</label>
+        <select id="combo_rule">
+          <option value="any" selected>制限なし</option>
+          <option value="same">同じ種類のみ</option>
+          <option value="diff">すべて異なる種類</option>
+        </select>
+      </div>
+
+      <button type="button" id="calculate-btn" class="btn-calculate">候補を計算する</button>
+    </form>
+
+    <div class="results">
+      <h2>🧮 提案された組み合わせ</h2>
+      <ul id="results-list">
+        <li>条件を入力して、「候補を計算する」ボタンを押してください。</li>
+      </ul>
+    </div>
+
+    <footer>
+      <small>by LemonJellyPool</small>
+    </footer>
+  </div>
 
   <script src="./app.js"></script>
 </body>
 </html>
-
