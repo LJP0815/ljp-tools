@@ -1,214 +1,510 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<title data-i18n="title">🧶 ゲージ計算ツール | Swatch Calculator</title>
-<meta name="description" content="編み物のゲージから作品サイズに必要な目数・段数を自動計算します。">
+  <title data-i18n="pageTitle">🧶 ゲージ変換ツール｜Gauge Converter</title>
+  <meta name="description" content="自分のゲージとパターンのゲージの差をもとに、必要な目数・段数や仕上がりサイズを計算します。" />
 
-<style>
-.container{
-max-width:720px;
-margin:40px auto;
-padding:32px;
-background:#fff;
-border-radius:16px;
-box-shadow:0 4px 20px rgba(0,0,0,.05);
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-}
+  <style>
+    :root{
+      --bg:#ffffff;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --soft:#f6f7f9;
+      --shadow:0 4px 20px rgba(0,0,0,.06);
+      --accent:#007aff;
+      --accent2:#0063cc;
+    }
+    body{
+      margin:0;
+      background:#fafafa;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      color:#111827;
+    }
+    .container{
+      max-width:820px;
+      margin:32px auto;
+      padding:28px;
+      background:var(--bg);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
+    }
+    .lang{
+      font-size:14px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .lang button{
+      background:none;
+      border:none;
+      cursor:pointer;
+      color:var(--accent);
+      font-weight:700;
+      padding:6px 8px;
+      border-radius:8px;
+    }
+    .lang button:hover{ background:rgba(0,122,255,.08); }
+    h1{
+      font-size:24px;
+      margin:0 0 6px 0;
+      letter-spacing:.2px;
+    }
+    .desc{
+      margin:0 0 22px 0;
+      color:var(--muted);
+      line-height:1.6;
+    }
 
-h1{
-text-align:center;
-margin-bottom:24px;
-}
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+    @media(min-width:760px){
+      .grid{ grid-template-columns:1fr 1fr; gap:16px; }
+    }
 
-.input-group{
-margin-bottom:18px;
-}
+    .card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+      background:#fff;
+    }
+    .card h2{
+      font-size:16px;
+      margin:0 0 12px 0;
+    }
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .input-group{ margin-bottom:10px; }
+    label{
+      display:block;
+      font-size:13px;
+      color:#111827;
+      font-weight:700;
+      margin:0 0 6px 0;
+    }
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+    }
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:16px;
+      box-sizing:border-box;
+      background:#fff;
+    }
+    input:focus{
+      outline:none;
+      border-color:rgba(0,122,255,.5);
+      box-shadow:0 0 0 4px rgba(0,122,255,.12);
+    }
 
-label{
-font-weight:600;
-display:block;
-margin-bottom:6px;
-}
+    .actions{
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      flex:1;
+      min-width:200px;
+      padding:14px 14px;
+      border:none;
+      border-radius:12px;
+      font-size:16px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn-primary{
+      background:var(--accent);
+      color:#fff;
+    }
+    .btn-primary:hover{ background:var(--accent2); }
+    .btn-ghost{
+      background:#fff;
+      border:1px solid var(--border);
+      color:#111827;
+    }
+    .btn-ghost:hover{ background:rgba(0,0,0,.03); }
 
-input{
-width:100%;
-padding:10px;
-border-radius:8px;
-border:1px solid #ddd;
-font-size:16px;
-}
+    .results{
+      margin-top:18px;
+      padding:16px;
+      background:var(--soft);
+      border-radius:14px;
+      border:1px solid var(--border);
+    }
+    .results h3{
+      margin:0 0 10px 0;
+      font-size:16px;
+    }
+    .kpi{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    @media(min-width:760px){
+      .kpi{ grid-template-columns:1fr 1fr 1fr; }
+    }
+    .kpi .box{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+    }
+    .kpi .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .kpi .value{
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .sub{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      white-space:pre-line;
+    }
 
-button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:10px;
-background:#007aff;
-color:white;
-font-size:18px;
-font-weight:700;
-cursor:pointer;
-margin-top:10px;
-}
-
-button:hover{
-background:#0063cc;
-}
-
-.result{
-margin-top:28px;
-padding:18px;
-background:#f6f7f9;
-border-radius:12px;
-font-size:18px;
-}
-
-.lang{
-text-align:right;
-margin-bottom:10px;
-}
-
-.lang button{
-background:none;
-border:none;
-color:#007aff;
-font-weight:700;
-cursor:pointer;
-}
-
-footer{
-text-align:center;
-margin-top:28px;
-color:#999;
-font-size:14px;
-}
-</style>
+    footer{
+      margin-top:18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    footer a{
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:700;
+    }
+    footer a:hover{ text-decoration:underline; }
+  </style>
 </head>
 
 <body>
+  <div class="container">
 
-<div class="container">
+    <div class="topbar">
+      <div>
+        <h1 data-i18n="h1">🧶 ゲージ変換ツール</h1>
+        <p class="desc" data-i18n="desc">
+          自分のゲージとパターンのゲージの差をもとに、必要な目数・段数と仕上がりサイズのズレを計算します。
+        </p>
+      </div>
 
-<div class="lang">
-<button onclick="setLang('ja')">JP</button> /
-<button onclick="setLang('en')">EN</button>
-</div>
+      <div class="lang">
+        <button type="button" onclick="setLang('ja')">JP</button> /
+        <button type="button" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
 
-<h1 data-i18n="title">🧶 ゲージ計算ツール</h1>
+    <div class="grid">
 
-<div class="input-group">
-<label data-i18n="stitchesGauge">ゲージ（目数 / 10cm）</label>
-<input id="stitchesGauge" type="number">
-</div>
+      <section class="card">
+        <h2 data-i18n="yourGaugeTitle">あなたのゲージ</h2>
+        <div class="row">
+          <div class="input-group">
+            <label for="yourSt" data-i18n="stitches10">目数 / 10cm</label>
+            <input id="yourSt" type="number" inputmode="decimal" placeholder="例: 18" />
+          </div>
+          <div class="input-group">
+            <label for="yourRw" data-i18n="rows10">段数 / 10cm</label>
+            <input id="yourRw" type="number" inputmode="decimal" placeholder="例: 26" />
+          </div>
+        </div>
+        <div class="hint" data-i18n="hintYour">
+          スワッチで測った「10cmあたりの目数・段数」を入れてください。
+        </div>
+      </section>
 
-<div class="input-group">
-<label data-i18n="rowsGauge">ゲージ（段数 / 10cm）</label>
-<input id="rowsGauge" type="number">
-</div>
+      <section class="card">
+        <h2 data-i18n="patternGaugeTitle">パターンのゲージ</h2>
+        <div class="row">
+          <div class="input-group">
+            <label for="patSt" data-i18n="stitches10_pat">目数 / 10cm（パターン）</label>
+            <input id="patSt" type="number" inputmode="decimal" placeholder="例: 22" />
+          </div>
+          <div class="input-group">
+            <label for="patRw" data-i18n="rows10_pat">段数 / 10cm（パターン）</label>
+            <input id="patRw" type="number" inputmode="decimal" placeholder="例: 30" />
+          </div>
+        </div>
+        <div class="hint" data-i18n="hintPat">
+          レシピに書いてある指定ゲージを入れてください。
+        </div>
+      </section>
 
-<div class="input-group">
-<label data-i18n="targetWidth">作りたい幅（cm）</label>
-<input id="targetWidth" type="number">
-</div>
+      <section class="card" style="grid-column:1/-1;">
+        <h2 data-i18n="sizeTitle">パターンのサイズ指定</h2>
+        <div class="row">
+          <div class="input-group">
+            <label for="wCm" data-i18n="width">幅（cm）</label>
+            <input id="wCm" type="number" inputmode="decimal" placeholder="例: 50" />
+          </div>
+          <div class="input-group">
+            <label for="hCm" data-i18n="height">高さ（cm）</label>
+            <input id="hCm" type="number" inputmode="decimal" placeholder="例: 60" />
+          </div>
+        </div>
+        <div class="hint" data-i18n="hintSize">
+          パターンの「このパーツをこの寸法にしたい」という幅・高さを入れてください。
+        </div>
 
-<div class="input-group">
-<label data-i18n="targetHeight">作りたい高さ（cm）</label>
-<input id="targetHeight" type="number">
-</div>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" id="btnCalc" data-i18n="calcBtn">計算する</button>
+          <button class="btn btn-ghost" type="button" id="btnReset" data-i18n="resetBtn">リセット</button>
+        </div>
+      </section>
 
-<button onclick="calculate()" data-i18n="calc">
-計算する
-</button>
+    </div>
 
-<div class="result" id="result">
-—
-</div>
+    <section class="results" aria-live="polite">
+      <h3 data-i18n="resultsTitle">結果</h3>
 
-<footer>
-Free knitting tools by LemonJellyPool
-</footer>
+      <div class="kpi">
+        <div class="box">
+          <div class="label" data-i18n="needSt">必要な目数</div>
+          <div class="value" id="outSt">—</div>
+        </div>
+        <div class="box">
+          <div class="label" data-i18n="needRw">必要な段数</div>
+          <div class="value" id="outRw">—</div>
+        </div>
+        <div class="box">
+          <div class="label" data-i18n="gaugeDiff">ゲージ差</div>
+          <div class="value" id="outDiff">—</div>
+        </div>
+      </div>
 
-</div>
+      <div class="sub" id="outNote">—</div>
+    </section>
+
+    <footer>
+      <span data-i18n="footerPrefix">Free knitting tools by</span>
+      <a href="https://lemonjellypool.com" target="_blank" rel="noopener">LemonJellyPool</a>
+    </footer>
+
+  </div>
 
 <script>
-
 /* ========= i18n ========= */
+const I18N = {
+  ja: {
+    pageTitle: "🧶 ゲージ変換ツール｜Gauge Converter",
+    h1: "🧶 ゲージ変換ツール",
+    desc: "自分のゲージとパターンのゲージの差をもとに、必要な目数・段数と仕上がりサイズのズレを計算します。",
+    yourGaugeTitle: "あなたのゲージ",
+    patternGaugeTitle: "パターンのゲージ",
+    sizeTitle: "パターンのサイズ指定",
+    stitches10: "目数 / 10cm",
+    rows10: "段数 / 10cm",
+    stitches10_pat: "目数 / 10cm（パターン）",
+    rows10_pat: "段数 / 10cm（パターン）",
+    width: "幅（cm）",
+    height: "高さ（cm）",
+    hintYour: "スワッチで測った「10cmあたりの目数・段数」を入れてください。",
+    hintPat: "レシピに書いてある指定ゲージを入れてください。",
+    hintSize: "パターンの「このパーツをこの寸法にしたい」という幅・高さを入れてください。",
+    calcBtn: "計算する",
+    resetBtn: "リセット",
+    resultsTitle: "結果",
+    needSt: "必要な目数",
+    needRw: "必要な段数",
+    gaugeDiff: "ゲージ差",
+    footerPrefix: "Free knitting tools by",
+    errMissing: "入力が足りません。空欄を埋めてください。",
+    noteTemplate:
+`【そのまま編んだ場合の仕上がり（推定）】
+幅: {w1} cm / 高さ: {h1} cm
 
-const dict = {
+【パターン通りのサイズに近づけるための目安】
+幅 {w} cm にしたい → {st} 目
+高さ {h} cm にしたい → {rw} 段`,
+    diffTight: "あなたのゲージはパターンより「きつめ」（{p}%）",
+    diffLoose: "あなたのゲージはパターンより「ゆるめ」（{p}%）",
+    diffSame: "ゲージ差はほぼ同じ（{p}%）"
+  },
+  en: {
+    pageTitle: "🧶 Gauge Converter – Knitting Swatch Calculator",
+    h1: "🧶 Gauge Converter",
+    desc: "Convert pattern measurements using the difference between your gauge and the pattern gauge.",
+    yourGaugeTitle: "Your Gauge",
+    patternGaugeTitle: "Pattern Gauge",
+    sizeTitle: "Target size (from pattern)",
+    stitches10: "Stitches / 10cm",
+    rows10: "Rows / 10cm",
+    stitches10_pat: "Stitches / 10cm (pattern)",
+    rows10_pat: "Rows / 10cm (pattern)",
+    width: "Width (cm)",
+    height: "Height (cm)",
+    hintYour: "Enter your measured gauge from a swatch (per 10cm).",
+    hintPat: "Enter the gauge specified in the pattern (per 10cm).",
+    hintSize: "Enter the target width/height you want to achieve.",
+    calcBtn: "Calculate",
+    resetBtn: "Reset",
+    resultsTitle: "Results",
+    needSt: "Stitches needed",
+    needRw: "Rows needed",
+    gaugeDiff: "Gauge difference",
+    footerPrefix: "Free knitting tools by",
+    errMissing: "Missing inputs. Please fill in all fields.",
+    noteTemplate:
+`【Estimated finished size if you knit as-is】
+Width: {w1} cm / Height: {h1} cm
 
-ja:{
-title:"🧶 ゲージ計算ツール",
-stitchesGauge:"ゲージ（目数 / 10cm）",
-rowsGauge:"ゲージ（段数 / 10cm）",
-targetWidth:"作りたい幅（cm）",
-targetHeight:"作りたい高さ（cm）",
-calc:"計算する",
-result:"必要な目数：{s}目\n必要な段数：{r}段"
-},
-
-en:{
-title:"🧶 Swatch Calculator",
-stitchesGauge:"Gauge (stitches / 10cm)",
-rowsGauge:"Gauge (rows / 10cm)",
-targetWidth:"Target width (cm)",
-targetHeight:"Target height (cm)",
-calc:"Calculate",
-result:"Stitches needed: {s}\nRows needed: {r}"
-}
-
+【To match the pattern size (rule of thumb)】
+Target width {w} cm → {st} stitches
+Target height {h} cm → {rw} rows`,
+    diffTight: "Your gauge is tighter than the pattern ({p}%)",
+    diffLoose: "Your gauge is looser than the pattern ({p}%)",
+    diffSame: "Your gauge is very close to the pattern ({p}%)"
+  }
 };
 
+function currentLang(){
+  return localStorage.getItem("lang") || "ja";
+}
+
 function setLang(lang){
-localStorage.setItem("lang",lang);
-applyLang();
+  localStorage.setItem("lang", lang);
+  applyLang();
 }
 
 function applyLang(){
+  const lang = currentLang();
+  const t = I18N[lang];
 
-const lang = localStorage.getItem("lang") || "ja";
-const t = dict[lang];
+  document.documentElement.lang = lang;
 
-document.documentElement.lang = lang;
+  // text nodes
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
 
-document.querySelectorAll("[data-i18n]").forEach(el=>{
-const key = el.dataset.i18n;
-if(t[key]) el.textContent = t[key];
-});
+  // <title> + meta description
+  const titleEl = document.querySelector("title");
+  if (titleEl) titleEl.textContent = t.pageTitle;
 
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute("content", t.desc);
 }
-
 applyLang();
 
 /* ========= logic ========= */
+const $ = (id) => document.getElementById(id);
 
-function calculate(){
-
-const stitchesGauge = Number(document.getElementById("stitchesGauge").value);
-const rowsGauge = Number(document.getElementById("rowsGauge").value);
-const width = Number(document.getElementById("targetWidth").value);
-const height = Number(document.getElementById("targetHeight").value);
-
-if(!stitchesGauge || !rowsGauge || !width || !height){
-return;
+function num(id){
+  const v = parseFloat($(id).value);
+  return Number.isFinite(v) ? v : null;
 }
 
-const stitches = Math.round(stitchesGauge/10 * width);
-const rows = Math.round(rowsGauge/10 * height);
+function fmtInt(n){ return Math.round(n).toString(); }
+function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
 
-const lang = localStorage.getItem("lang") || "ja";
+function calc(){
+  const yourSt = num("yourSt");
+  const yourRw = num("yourRw");
+  const patSt  = num("patSt");
+  const patRw  = num("patRw");
+  const wCm    = num("wCm");
+  const hCm    = num("hCm");
 
-let text = dict[lang].result
-.replace("{s}",stitches)
-.replace("{r}",rows);
+  const lang = currentLang();
+  const t = I18N[lang];
 
-document.getElementById("result").innerText = text;
+  if([yourSt,yourRw,patSt,patRw,wCm,hCm].some(v => v === null || v <= 0)){
+    $("outSt").textContent = "—";
+    $("outRw").textContent = "—";
+    $("outDiff").textContent = "—";
+    $("outNote").textContent = t.errMissing;
+    return;
+  }
 
+  // Pattern's stitch/row counts for target size
+  const patNeedSt = (patSt / 10) * wCm;
+  const patNeedRw = (patRw / 10) * hCm;
+
+  // Convert to YOUR gauge (how many stitches/rows you need to hit same cm)
+  const needSt = (yourSt / 10) * wCm;
+  const needRw = (yourRw / 10) * hCm;
+
+  // Another way to communicate: required adjustment ratio vs pattern counts
+  // If pattern tells you "cast on patNeedSt", you may need to adjust by ratio (yourSt/patSt)
+  const adjSt = patNeedSt * (yourSt / patSt);
+  const adjRw = patNeedRw * (yourRw / patRw);
+
+  // If you follow pattern stitch count without adjusting, what's your finished size?
+  // finished width = (pattern stitch count) / (your stitches per 10cm) * 10
+  const finW = (patNeedSt / yourSt) * 10;
+  const finH = (patNeedRw / yourRw) * 10;
+
+  // Gauge difference percentage (stitches and rows shown separately combined as short summary)
+  const diffStPct = ((yourSt - patSt) / patSt) * 100;
+  const diffRwPct = ((yourRw - patRw) / patRw) * 100;
+
+  // Summarize as "tight/loose" mainly from stitches (width impact), with rows also in note
+  const abs = Math.abs(diffStPct);
+  let diffText;
+  if(abs < 1.0) diffText = t.diffSame.replace("{p}", fmt1(diffStPct));
+  else if(diffStPct > 0) diffText = t.diffTight.replace("{p}", fmt1(diffStPct));
+  else diffText = t.diffLoose.replace("{p}", fmt1(Math.abs(diffStPct)));
+
+  $("outSt").textContent = `${fmtInt(adjSt)} st`;
+  $("outRw").textContent = `${fmtInt(adjRw)} rows`;
+  $("outDiff").textContent = lang === "ja"
+    ? `${diffText} / 段差 ${fmt1(diffRwPct)}%`
+    : `${diffText} / rows ${fmt1(diffRwPct)}%`;
+
+  const note = t.noteTemplate
+    .replace("{w1}", fmt1(finW))
+    .replace("{h1}", fmt1(finH))
+    .replace("{w}", fmt1(wCm))
+    .replace("{h}", fmt1(hCm))
+    .replace("{st}", fmtInt(adjSt))
+    .replace("{rw}", fmtInt(adjRw));
+
+  $("outNote").textContent = note;
 }
 
+function resetAll(){
+  ["yourSt","yourRw","patSt","patRw","wCm","hCm"].forEach(id => $(id).value = "");
+  $("outSt").textContent = "—";
+  $("outRw").textContent = "—";
+  $("outDiff").textContent = "—";
+  $("outNote").textContent = "—";
+}
+
+$("btnCalc").addEventListener("click", calc);
+$("btnReset").addEventListener("click", resetAll);
+
+// Enterキーでも計算
+["yourSt","yourRw","patSt","patRw","wCm","hCm"].forEach(id => {
+  $(id).addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); calc(); }
+  });
+});
 </script>
-
 </body>
 </html>
