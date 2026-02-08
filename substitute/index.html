@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/favicon.png">
+
+  <title>Yarn Substitution Advisor | LemonJellyPool Tools</title>
+  <meta name="description" content="A lightweight yarn substitution advisor for knitters. Calculate skeins, total meters, and compatibility based on m/g." />
+  <meta name="robots" content="index,follow" />
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --page:#fafafa;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --soft:#f6f7f9;
+      --shadow:0 4px 20px rgba(0,0,0,.06);
+      --accent:#007aff;
+      --accent2:#0063cc;
+      --radius:18px;
+
+      --good:#0f766e;
+      --warn:#b45309;
+      --bad:#b91c1c;
+    }
+
+    body{
+      margin:0;
+      background:var(--page);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+    }
+    .wrap{
+      max-width: 920px;
+      margin: 28px auto 44px;
+      padding: 0 18px;
+    }
+
+    header{
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 20px 16px;
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+    h1{
+      margin:0;
+      font-size: 20px;
+      letter-spacing: .2px;
+      line-height: 1.25;
+    }
+    .subtitle{
+      margin:8px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .lang{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding:6px 8px;
+      background:#fff;
+      user-select:none;
+      white-space:nowrap;
+      height: fit-content;
+    }
+    .lang .label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      margin-right:4px;
+    }
+    .lang button{
+      background:none;
+      border:none;
+      cursor:pointer;
+      color:var(--accent);
+      font-weight:900;
+      padding:6px 10px;
+      border-radius: 12px;
+    }
+    .lang button:hover{ background: rgba(0,122,255,.08); }
+    .lang button.active{
+      background: rgba(0,122,255,.14);
+      color:#0b4aa2;
+    }
+
+    main{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media(min-width: 860px){
+      main{ grid-template-columns: 1fr 1fr; gap:16px; }
+    }
+
+    .card{
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .card h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .2px;
+    }
+    .desc{
+      margin:0;
+      color:var(--muted);
+      line-height: 1.6;
+      font-size: 13.5px;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media(max-width: 520px){
+      .grid2{ grid-template-columns: 1fr; }
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: #374151;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    input{
+      width:100%;
+      padding: 10px 10px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      background:#fff;
+      font-size: 14px;
+      box-sizing:border-box;
+      outline: none;
+    }
+    input:focus{
+      border-color: rgba(0,122,255,.5);
+      box-shadow: 0 0 0 3px rgba(0,122,255,.12);
+    }
+    .hint{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .panel{
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .compat{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .stars{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      white-space:nowrap;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 900;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: var(--soft);
+      white-space:nowrap;
+    }
+    .badge.good{ color: var(--good); border-color: rgba(15,118,110,.25); background: rgba(15,118,110,.08); }
+    .badge.warn{ color: var(--warn); border-color: rgba(180,83,9,.25); background: rgba(180,83,9,.08); }
+    .badge.bad{  color: var(--bad);  border-color: rgba(185,28,28,.25); background: rgba(185,28,28,.08); }
+
+    .resultGrid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media(max-width: 520px){
+      .resultGrid{ grid-template-columns: 1fr; }
+    }
+    .kv{
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 12px;
+      background:#fff;
+    }
+    .kv .k{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .kv .v{
+      margin-top:6px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .kv .s{
+      margin-top:6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.5;
+    }
+
+    .advice{
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      color: #111827;
+      line-height: 1.7;
+      font-size: 13.5px;
+    }
+    .advice p{ margin: 0 0 8px; }
+    .advice ul{ margin: 0; padding-left: 18px; }
+    .advice li{ margin: 6px 0; }
+
+    .links{
+      margin-top: 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-decoration:none;
+      font-weight: 900;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      background:#fff;
+      color: var(--text);
+      min-width: 180px;
+    }
+    .btn:hover{ background: rgba(0,0,0,.03); }
+    .btn.primary{
+      background: var(--accent);
+      border-color: transparent;
+      color:#fff;
+    }
+    .btn.primary:hover{ background: var(--accent2); }
+
+    footer{
+      margin: 16px 0 0;
+      text-align:center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    footer a{
+      color: var(--accent);
+      text-decoration:none;
+      font-weight: 900;
+    }
+    footer a:hover{ text-decoration: underline; }
+
+    .smallnote{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .mono{ font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="topbar">
+        <div>
+          <h1 data-i18n="title">🧶 Yarn Substitution Advisor</h1>
+          <p class="subtitle" data-i18n="subtitle">Not just a calculator—get compatibility and practical advice.</p>
+        </div>
+
+        <div class="lang" aria-label="Language">
+          <span class="label">LANG</span>
+          <button type="button" id="btnJa" onclick="setLang('ja')">JP</button>
+          <button type="button" id="btnEn" onclick="setLang('en')">EN</button>
+        </div>
+      </div>
+      <div class="smallnote" data-i18n="topNote">
+        Tip: Compare yarn thickness using m/g (meters per gram). Closer values usually substitute better.
+      </div>
+    </header>
+
+    <main>
+      <!-- Pattern Yarn -->
+      <section class="card">
+        <h2 data-i18n="patternTitle">Pattern Yarn</h2>
+        <p class="desc" data-i18n="patternDesc">Enter the yarn specified by the pattern, including how many skeins it requires.</p>
+
+        <div class="grid2">
+          <div>
+            <label for="p_m" data-i18n="labelLenPerSkein">Length per skein (m)</label>
+            <input id="p_m" type="number" inputmode="decimal" step="0.1" placeholder="400" />
+          </div>
+          <div>
+            <label for="p_g" data-i18n="labelWtPerSkein">Weight per skein (g)</label>
+            <input id="p_g" type="number" inputmode="decimal" step="0.1" placeholder="100" />
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="p_skeins" data-i18n="labelSkeinsReq">Skeins required</label>
+            <input id="p_skeins" type="number" inputmode="decimal" step="0.1" placeholder="3" />
+          </div>
+          <div>
+            <label data-i18n="labelPatternMpg">Pattern density (m/g)</label>
+            <input id="p_mpg" type="text" readonly />
+            <p class="hint mono" id="p_mpg_hint"></p>
+          </div>
+        </div>
+
+        <p class="hint" data-i18n="patternHint">Example: 100g/400m × 3 skeins → total 1200m, 300g</p>
+      </section>
+
+      <!-- Substitute Yarn -->
+      <section class="card">
+        <h2 data-i18n="subTitle">Substitute Yarn</h2>
+        <p class="desc" data-i18n="subDesc">Enter the yarn you want to use instead.</p>
+
+        <div class="grid2">
+          <div>
+            <label for="s_m" data-i18n="labelLenPerSkein">Length per skein (m)</label>
+            <input id="s_m" type="number" inputmode="decimal" step="0.1" placeholder="300" />
+          </div>
+          <div>
+            <label for="s_g" data-i18n="labelWtPerSkein">Weight per skein (g)</label>
+            <input id="s_g" type="number" inputmode="decimal" step="0.1" placeholder="100" />
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label data-i18n="labelSubMpg">Substitute density (m/g)</label>
+            <input id="s_mpg" type="text" readonly />
+            <p class="hint mono" id="s_mpg_hint"></p>
+          </div>
+          <div>
+            <label data-i18n="labelAuto">Auto result</label>
+            <input id="auto_hint" type="text" readonly />
+            <p class="hint" data-i18n="autoHint">Results update automatically as you type.</p>
+          </div>
+        </div>
+
+        <p class="hint" data-i18n="subHint">Lower m/g usually means a thicker/heavier yarn.</p>
+      </section>
+    </main>
+
+    <!-- Compatibility + Results -->
+    <section class="panel" style="margin-top:14px;">
+      <div class="compat">
+        <div>
+          <div class="stars mono" id="stars">★★★★★</div>
+          <div class="mono" id="compatText" style="margin-top:6px; font-weight:900; font-size:14px;">—</div>
+        </div>
+        <div class="badge" id="badge">—</div>
+      </div>
+
+      <div class="resultGrid">
+        <div class="kv">
+          <div class="k" data-i18n="resNeedSkeins">Skeins needed</div>
+          <div class="v mono" id="needSkeins">—</div>
+          <div class="s" data-i18n="resNeedSkeinsNote">Round up if you’re buying yarn</div>
+        </div>
+
+        <div class="kv">
+          <div class="k" data-i18n="resTotalMeters">Total meters needed</div>
+          <div class="v mono" id="totalMeters">—</div>
+          <div class="s" data-i18n="resTotalMetersNote">Total meters required by the pattern</div>
+        </div>
+
+        <div class="kv">
+          <div class="k" data-i18n="resTotalWeight">Estimated total weight</div>
+          <div class="v mono" id="totalWeight">—</div>
+          <div class="s" data-i18n="resTotalWeightNote">Estimated weight with the substitute yarn</div>
+        </div>
+
+        <div class="kv">
+          <div class="k" data-i18n="resLeftover">Leftover estimate</div>
+          <div class="v mono" id="leftover">—</div>
+          <div class="s" data-i18n="resLeftoverNote">Approximate leftover or shortage</div>
+        </div>
+      </div>
+
+      <div class="advice" id="advice"></div>
+
+      <div class="links">
+        <a class="btn" href="/" data-i18n="backHome">← Back to Tools</a>
+        <a class="btn primary" id="needleLink" href="/needle/" data-i18n="openNeedle">Open Needle Size Advisor →</a>
+      </div>
+
+      <footer style="margin-top:14px;">
+        <span data-i18n="footerPrefix">by</span>
+        <a href="https://lemonjellypool.com" target="_blank" rel="noopener">LemonJellyPool</a>
+      </footer>
+    </section>
+
+  </div>
+
+<script>
+/* =========================
+   i18n
+========================= */
+const I18N = {
+  ja: {
+    metaDescription: "編み物用・代替糸アドバイザー。m/gで太さを比較し、必要玉数や適合度、注意点まで表示します。",
+
+    title: "🧶 代替糸アドバイザー｜Yarn Substitution Advisor",
+    subtitle: "糸の代替を「計算」だけで終わらせず、適合度と注意点まで出します。",
+    topNote: "Tip: m/g（メートル÷グラム）で糸の「太さ」を比べます。近いほど代替しやすいです。",
+
+    patternTitle: "パターン指定糸（Pattern Yarn）",
+    patternDesc: "パターンが指定している糸の情報と、必要玉数（かせ数）を入力します。",
+    subTitle: "代替糸（Substitute Yarn）",
+    subDesc: "代替したい糸の情報を入力します。",
+
+    // input labels
+    labelLenPerSkein: "1玉（かせ）の長さ（m）",
+    labelWtPerSkein: "1玉（かせ）の重さ（g）",
+    labelSkeinsReq: "パターン必要玉数（かせ数）",
+    labelPatternMpg: "パターン糸の密度（m/g）",
+    labelSubMpg: "代替糸の密度（m/g）",
+    labelAuto: "自動計算（目安）",
+    autoHint: "入力すると自動で計算します。",
+
+    patternHint: "例）100g/400m を3玉 → 合計1200m、300g",
+    subHint: "代替糸のm/gが小さいほど「太い（重い）」傾向になります。",
+
+    // result labels
+    resNeedSkeins: "代替糸の必要玉数（目安）",
+    resNeedSkeinsNote: "購入する場合は切り上げ推奨",
+    resTotalMeters: "必要総メートル（パターン基準）",
+    resTotalMetersNote: "パターン指定糸の総メートル",
+    resTotalWeight: "代替糸で揃える場合の総重量（目安）",
+    resTotalWeightNote: "素材や撚りで体感は変わります",
+    resLeftover: "余り／不足の目安（m）",
+    resLeftoverNote: "切り上げ玉数で計算した概算",
+
+    backHome: "← ツール一覧へ",
+    openNeedle: "針サイズアドバイザーを開く →",
+    footerPrefix: "by",
+
+    compLabels: {
+      excellent: "Excellent match（かなり近い）",
+      verygood: "Very good（近い）",
+      caution: "Usable with caution（注意して代替）",
+      risky: "Risky（リスク高め）",
+      norec: "Not recommended（推奨しない）",
+    },
+
+    directionThicker: "代替糸の方が太め（重め）です。",
+    directionThinner: "代替糸の方が細め（軽め）です。",
+    directionClose: "太さはかなり近いです。",
+
+    adviceTitle: "アドバイス（目安）",
+    adviceBullets: {
+      close: [
+        "基本はそのまま代替しやすい範囲です。",
+        "ただし編み地の風合い（撚り/素材/弾力）は別要因なので、スワッチ推奨です。"
+      ],
+      thicker: [
+        "編み地が厚く・重くなりやすいです（ドレープが減ることがあります）。",
+        "仕上がり寸法がズレる可能性があります。ゲージも確認してください。",
+        "必要なら針サイズ調整を検討してください（下のリンク）。"
+      ],
+      thinner: [
+        "編み地が薄く・軽くなりやすいです（透け感が出ることがあります）。",
+        "仕上がり寸法がズレる可能性があります。ゲージも確認してください。",
+        "必要なら針サイズ調整を検討してください（下のリンク）。"
+      ],
+      norec: [
+        "差が大きいので、そのままの代替はおすすめしません。",
+        "別の糸候補を探すか、針サイズ・設計を大きく調整してください。",
+        "最小でもスワッチ必須です。"
+      ]
+    },
+
+    statusGood: "良好",
+    statusWarn: "注意",
+    statusBad: "要注意"
+  },
+
+  en: {
+    metaDescription: "A lightweight yarn substitution advisor for knitters. Compare thickness using m/g, estimate skeins, and see compatibility + advice.",
+
+    title: "🧶 Yarn Substitution Advisor",
+    subtitle: "Not just a calculator—get compatibility and practical advice.",
+    topNote: "Tip: Compare yarn thickness using m/g (meters per gram). Closer values usually substitute better.",
+
+    patternTitle: "Pattern Yarn",
+    patternDesc: "Enter the yarn specified by the pattern, including how many skeins it requires.",
+    subTitle: "Substitute Yarn",
+    subDesc: "Enter the yarn you want to use instead.",
+
+    // input labels
+    labelLenPerSkein: "Length per skein (m)",
+    labelWtPerSkein: "Weight per skein (g)",
+    labelSkeinsReq: "Skeins required",
+    labelPatternMpg: "Pattern density (m/g)",
+    labelSubMpg: "Substitute density (m/g)",
+    labelAuto: "Auto result",
+    autoHint: "Results update automatically as you type.",
+
+    patternHint: "Example: 100g/400m × 3 skeins → total 1200m, 300g",
+    subHint: "Lower m/g usually means a thicker/heavier yarn.",
+
+    // result labels
+    resNeedSkeins: "Skeins needed",
+    resNeedSkeinsNote: "Round up if you’re buying yarn",
+    resTotalMeters: "Total meters needed",
+    resTotalMetersNote: "Total meters required by the pattern",
+    resTotalWeight: "Estimated total weight",
+    resTotalWeightNote: "Estimated weight with the substitute yarn",
+    resLeftover: "Leftover estimate",
+    resLeftoverNote: "Approximate leftover or shortage",
+
+    backHome: "← Back to Tools",
+    openNeedle: "Open Needle Size Advisor →",
+    footerPrefix: "by",
+
+    compLabels: {
+      excellent: "Excellent match",
+      verygood: "Very good",
+      caution: "Usable with caution",
+      risky: "Risky",
+      norec: "Not recommended",
+    },
+
+    directionThicker: "Your substitute is thicker/heavier than the pattern yarn.",
+    directionThinner: "Your substitute is thinner/lighter than the pattern yarn.",
+    directionClose: "Thickness is very close.",
+
+    adviceTitle: "Advice",
+    adviceBullets: {
+      close: [
+        "This is generally a safe substitution range.",
+        "Fiber, twist, and elasticity still matter—make a swatch if possible."
+      ],
+      thicker: [
+        "Fabric may feel denser/heavier and drape less.",
+        "Finished size may shift—check your gauge.",
+        "Consider adjusting needle size (link below)."
+      ],
+      thinner: [
+        "Fabric may feel lighter and more open/airy.",
+        "Finished size may shift—check your gauge.",
+        "Consider adjusting needle size (link below)."
+      ],
+      norec: [
+        "The difference is large—this substitution is not recommended as-is.",
+        "Try another yarn or be ready for major needle/pattern adjustments.",
+        "A swatch is strongly recommended."
+      ]
+    },
+
+    statusGood: "GOOD",
+    statusWarn: "CAUTION",
+    statusBad: "RISK"
+  }
+};
+
+function currentLang(){ return localStorage.getItem("lang") || "ja"; }
+
+function setLang(lang){
+  localStorage.setItem("lang", lang);
+  applyLang();
+  recalc();
+}
+
+function applyLang(){
+  const lang = currentLang();
+  const t = I18N[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
+
+  // title & meta description
+  document.title = t.title;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc && t.metaDescription) metaDesc.setAttribute("content", t.metaDescription);
+
+  document.getElementById("btnJa").classList.toggle("active", lang === "ja");
+  document.getElementById("btnEn").classList.toggle("active", lang === "en");
+}
+
+/* =========================
+   Helpers
+========================= */
+function n(v){
+  const x = parseFloat(v);
+  return Number.isFinite(x) ? x : null;
+}
+function fmt(x, digits=0){
+  if (!Number.isFinite(x)) return "—";
+  return x.toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
+}
+function ceil1(x){
+  if (!Number.isFinite(x)) return null;
+  return Math.ceil(x * 10) / 10;
+}
+function starString(score){
+  const full = "★".repeat(score);
+  const empty = "☆".repeat(5 - score);
+  return full + empty;
+}
+function classify(diffRatio){
+  if (!Number.isFinite(diffRatio)) return null;
+  if (diffRatio <= 0.10) return { score:5, key:"excellent", level:"good" };
+  if (diffRatio <= 0.20) return { score:4, key:"verygood", level:"good" };
+  if (diffRatio <= 0.30) return { score:3, key:"caution", level:"warn" };
+  if (diffRatio <= 0.40) return { score:2, key:"risky", level:"warn" };
+  return { score:1, key:"norec", level:"bad" };
+}
+
+/* =========================
+   Calculation
+========================= */
+const el = {
+  p_m: document.getElementById("p_m"),
+  p_g: document.getElementById("p_g"),
+  p_skeins: document.getElementById("p_skeins"),
+  p_mpg: document.getElementById("p_mpg"),
+  p_mpg_hint: document.getElementById("p_mpg_hint"),
+
+  s_m: document.getElementById("s_m"),
+  s_g: document.getElementById("s_g"),
+  s_mpg: document.getElementById("s_mpg"),
+  s_mpg_hint: document.getElementById("s_mpg_hint"),
+
+  stars: document.getElementById("stars"),
+  compatText: document.getElementById("compatText"),
+  badge: document.getElementById("badge"),
+  needSkeins: document.getElementById("needSkeins"),
+  totalMeters: document.getElementById("totalMeters"),
+  totalWeight: document.getElementById("totalWeight"),
+  leftover: document.getElementById("leftover"),
+  advice: document.getElementById("advice"),
+  auto_hint: document.getElementById("auto_hint"),
+  needleLink: document.getElementById("needleLink"),
+};
+
+function recalc(){
+  const lang = currentLang();
+  const t = I18N[lang];
+
+  const pM = n(el.p_m.value);
+  const pG = n(el.p_g.value);
+  const pS = n(el.p_skeins.value);
+
+  const sM = n(el.s_m.value);
+  const sG = n(el.s_g.value);
+
+  const pMpg = (pM && pG && pM>0 && pG>0) ? (pM / pG) : null;
+  el.p_mpg.value = pMpg ? fmt(pMpg, 3) : "";
+  el.p_mpg_hint.textContent = pMpg ? `m/g = ${fmt(pMpg, 3)}  (m ÷ g)` : "";
+
+  const sMpg = (sM && sG && sM>0 && sG>0) ? (sM / sG) : null;
+  el.s_mpg.value = sMpg ? fmt(sMpg, 3) : "";
+  el.s_mpg_hint.textContent = sMpg ? `m/g = ${fmt(sMpg, 3)}  (m ÷ g)` : "";
+
+  const totalMeters = (pM && pS && pM>0 && pS>0) ? (pM * pS) : null;
+
+  const needSkeinsRaw = (totalMeters && sM && sM>0) ? (totalMeters / sM) : null;
+  const needSkeinsRounded = needSkeinsRaw ? ceil1(needSkeinsRaw) : null;
+
+  const totalWeight = (totalMeters && sMpg && sMpg>0) ? (totalMeters / sMpg) : null;
+
+  let leftover = null;
+  if (totalMeters && sM && needSkeinsRounded){
+    const haveMeters = needSkeinsRounded * sM;
+    leftover = haveMeters - totalMeters;
+  }
+
+  if (totalMeters && needSkeinsRounded){
+    el.auto_hint.value = (lang === "ja")
+      ? `必要: 約 ${fmt(needSkeinsRounded,1)} 玉`
+      : `Need ~ ${fmt(needSkeinsRounded,1)} skeins`;
+  } else {
+    el.auto_hint.value = "";
+  }
+
+  el.totalMeters.textContent = totalMeters ? `${fmt(totalMeters, 0)} m` : "—";
+  el.needSkeins.textContent = needSkeinsRounded ? `${fmt(needSkeinsRounded,1)}` : "—";
+  el.totalWeight.textContent = totalWeight ? `${fmt(totalWeight, 0)} g` : "—";
+
+  if (leftover === null){
+    el.leftover.textContent = "—";
+  } else {
+    const sign = leftover >= 0 ? "+" : "−";
+    el.leftover.textContent = `${sign}${fmt(Math.abs(leftover), 0)} m`;
+  }
+
+  const compat = (pMpg && sMpg && pMpg>0 && sMpg>0)
+    ? classify(Math.abs(sMpg - pMpg) / pMpg)
+    : null;
+
+  let direction = null;
+  if (pMpg && sMpg){
+    const delta = sMpg - pMpg;
+    if (Math.abs(delta) / pMpg <= 0.10) direction = "close";
+    else direction = (delta < 0) ? "thicker" : "thinner";
+  }
+
+  if (!compat){
+    el.stars.textContent = "★★★★★";
+    el.compatText.textContent = "—";
+    el.badge.textContent = "—";
+    el.badge.className = "badge";
+    el.advice.innerHTML = `<p>${lang==="ja" ? "入力すると、適合度と助言が表示されます。" : "Fill in the fields above to see compatibility and advice."}</p>`;
+    el.needleLink.style.display = "none";
+    return;
+  }
+
+  el.stars.textContent = starString(compat.score);
+  el.compatText.textContent = t.compLabels[compat.key];
+
+  el.badge.className = "badge";
+  if (compat.level === "good"){
+    el.badge.classList.add("good");
+    el.badge.textContent = t.statusGood;
+  } else if (compat.level === "warn"){
+    el.badge.classList.add("warn");
+    el.badge.textContent = t.statusWarn;
+  } else {
+    el.badge.classList.add("bad");
+    el.badge.textContent = t.statusBad;
+  }
+
+  const dirText =
+    (direction === "thicker") ? t.directionThicker :
+    (direction === "thinner") ? t.directionThinner :
+    t.directionClose;
+
+  const diffPct = Math.abs(sMpg - pMpg) / pMpg * 100;
+
+  const bullets =
+    (compat.key === "norec") ? t.adviceBullets.norec :
+    (direction === "thicker") ? t.adviceBullets.thicker :
+    (direction === "thinner") ? t.adviceBullets.thinner :
+    t.adviceBullets.close;
+
+  el.advice.innerHTML = `
+    <p><strong>${t.adviceTitle}</strong></p>
+    <p class="mono">${dirText} (Δ ${fmt(diffPct, 1)}%)</p>
+    <ul>${bullets.map(b => `<li>${b}</li>`).join("")}</ul>
+  `;
+
+  const showNeedle = diffPct > 20 || compat.level !== "good";
+  el.needleLink.style.display = showNeedle ? "inline-flex" : "none";
+}
+
+function attach(){
+  ["input","change"].forEach(evt => {
+    el.p_m.addEventListener(evt, recalc);
+    el.p_g.addEventListener(evt, recalc);
+    el.p_skeins.addEventListener(evt, recalc);
+    el.s_m.addEventListener(evt, recalc);
+    el.s_g.addEventListener(evt, recalc);
+  });
+}
+
+applyLang();
+attach();
+recalc();
+</script>
+</body>
+</html>
