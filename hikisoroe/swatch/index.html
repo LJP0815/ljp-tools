@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="../favicon.png">
-  <title data-i18n="pageTitle">🧶 ゲージ変換ツール｜Gauge Converter</title>
+  <title>🧶 ゲージ変換ツール｜Gauge Converter</title>
   <meta name="description" content="自分のゲージとパターンのゲージの差をもとに、必要な目数・段数や仕上がりサイズを計算します。" />
 
   <style>
@@ -33,26 +33,51 @@
     }
     .topbar{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:12px;
       margin-bottom:18px;
     }
-    .lang{
+    .right-controls{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+      user-select:none;
       font-size:14px;
       color:var(--muted);
-      user-select:none;
+      white-space:nowrap;
     }
-    .lang button{
+    .seg{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:6px 8px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+    }
+    .seg .label{
+      color:var(--muted);
+      font-weight:700;
+      margin-right:4px;
+      font-size:12px;
+    }
+    .seg button{
       background:none;
       border:none;
       cursor:pointer;
       color:var(--accent);
-      font-weight:700;
-      padding:6px 8px;
-      border-radius:8px;
+      font-weight:800;
+      padding:6px 10px;
+      border-radius:10px;
     }
-    .lang button:hover{ background:rgba(0,122,255,.08); }
+    .seg button:hover{ background:rgba(0,122,255,.08); }
+    .seg button.active{
+      background:rgba(0,122,255,.14);
+      color:#0b4aa2;
+    }
+
     h1{
       font-size:24px;
       margin:0 0 6px 0;
@@ -93,13 +118,14 @@
       display:block;
       font-size:13px;
       color:#111827;
-      font-weight:700;
+      font-weight:800;
       margin:0 0 6px 0;
     }
     .hint{
       font-size:12px;
       color:var(--muted);
       margin-top:6px;
+      line-height:1.5;
     }
     input{
       width:100%;
@@ -129,7 +155,7 @@
       border:none;
       border-radius:12px;
       font-size:16px;
-      font-weight:800;
+      font-weight:900;
       cursor:pointer;
     }
     .btn-primary{
@@ -173,6 +199,7 @@
       font-size:12px;
       color:var(--muted);
       margin-bottom:6px;
+      font-weight:700;
     }
     .kpi .value{
       font-size:20px;
@@ -196,7 +223,7 @@
     footer a{
       color:var(--accent);
       text-decoration:none;
-      font-weight:700;
+      font-weight:800;
     }
     footer a:hover{ text-decoration:underline; }
   </style>
@@ -213,9 +240,18 @@
         </p>
       </div>
 
-      <div class="lang">
-        <button type="button" onclick="setLang('ja')">JP</button> /
-        <button type="button" onclick="setLang('en')">EN</button>
+      <div class="right-controls">
+        <div class="seg" aria-label="Language">
+          <span class="label">LANG</span>
+          <button type="button" id="btnJa" onclick="setLang('ja')">JP</button>
+          <button type="button" id="btnEn" onclick="setLang('en')">EN</button>
+        </div>
+
+        <div class="seg" aria-label="Unit">
+          <span class="label">UNIT</span>
+          <button type="button" id="btnCm" onclick="setUnit('cm')">cm</button>
+          <button type="button" id="btnIn" onclick="setUnit('inch')">inch</button>
+        </div>
       </div>
     </div>
 
@@ -259,12 +295,16 @@
         <h2 data-i18n="sizeTitle">パターンのサイズ指定</h2>
         <div class="row">
           <div class="input-group">
-            <label for="wCm" data-i18n="width">幅（cm）</label>
-            <input id="wCm" type="number" inputmode="decimal" placeholder="例: 50" />
+            <label for="wVal">
+              <span data-i18n="width">幅</span>（<span data-unit>cm</span>）
+            </label>
+            <input id="wVal" type="number" inputmode="decimal" placeholder="例: 50" />
           </div>
           <div class="input-group">
-            <label for="hCm" data-i18n="height">高さ（cm）</label>
-            <input id="hCm" type="number" inputmode="decimal" placeholder="例: 60" />
+            <label for="hVal">
+              <span data-i18n="height">高さ</span>（<span data-unit>cm</span>）
+            </label>
+            <input id="hVal" type="number" inputmode="decimal" placeholder="例: 60" />
           </div>
         </div>
         <div class="hint" data-i18n="hintSize">
@@ -308,10 +348,13 @@
   </div>
 
 <script>
-/* ========= i18n ========= */
+/* =========================
+   i18n
+========================= */
 const I18N = {
   ja: {
     pageTitle: "🧶 ゲージ変換ツール｜Gauge Converter",
+    metaDesc: "自分のゲージとパターンのゲージの差をもとに、必要な目数・段数や仕上がりサイズを計算します。",
     h1: "🧶 ゲージ変換ツール",
     desc: "自分のゲージとパターンのゲージの差をもとに、必要な目数・段数と仕上がりサイズのズレを計算します。",
     yourGaugeTitle: "あなたのゲージ",
@@ -321,8 +364,8 @@ const I18N = {
     rows10: "段数 / 10cm",
     stitches10_pat: "目数 / 10cm（パターン）",
     rows10_pat: "段数 / 10cm（パターン）",
-    width: "幅（cm）",
-    height: "高さ（cm）",
+    width: "幅",
+    height: "高さ",
     hintYour: "スワッチで測った「10cmあたりの目数・段数」を入れてください。",
     hintPat: "レシピに書いてある指定ゲージを入れてください。",
     hintSize: "パターンの「このパーツをこの寸法にしたい」という幅・高さを入れてください。",
@@ -334,19 +377,20 @@ const I18N = {
     gaugeDiff: "ゲージ差",
     footerPrefix: "Free knitting tools by",
     errMissing: "入力が足りません。空欄を埋めてください。",
+    diffTight: "きつめ（{p}%）",
+    diffLoose: "ゆるめ（{p}%）",
+    diffSame: "ほぼ同じ（{p}%）",
     noteTemplate:
 `【そのまま編んだ場合の仕上がり（推定）】
-幅: {w1} cm / 高さ: {h1} cm
+幅: {w1} {u} / 高さ: {h1} {u}
 
-【パターン通りのサイズに近づけるための目安】
-幅 {w} cm にしたい → {st} 目
-高さ {h} cm にしたい → {rw} 段`,
-    diffTight: "あなたのゲージはパターンより「きつめ」（{p}%）",
-    diffLoose: "あなたのゲージはパターンより「ゆるめ」（{p}%）",
-    diffSame: "ゲージ差はほぼ同じ（{p}%）"
+【パターン通りのサイズに近づける目安】
+幅 {w} {u} にしたい → {st} 目
+高さ {h} {u} にしたい → {rw} 段`
   },
   en: {
     pageTitle: "🧶 Gauge Converter – Knitting Swatch Calculator",
+    metaDesc: "Convert pattern measurements using the difference between your gauge and the pattern gauge.",
     h1: "🧶 Gauge Converter",
     desc: "Convert pattern measurements using the difference between your gauge and the pattern gauge.",
     yourGaugeTitle: "Your Gauge",
@@ -356,8 +400,8 @@ const I18N = {
     rows10: "Rows / 10cm",
     stitches10_pat: "Stitches / 10cm (pattern)",
     rows10_pat: "Rows / 10cm (pattern)",
-    width: "Width (cm)",
-    height: "Height (cm)",
+    width: "Width",
+    height: "Height",
     hintYour: "Enter your measured gauge from a swatch (per 10cm).",
     hintPat: "Enter the gauge specified in the pattern (per 10cm).",
     hintSize: "Enter the target width/height you want to achieve.",
@@ -369,72 +413,135 @@ const I18N = {
     gaugeDiff: "Gauge difference",
     footerPrefix: "Free knitting tools by",
     errMissing: "Missing inputs. Please fill in all fields.",
+    diffTight: "Tighter ({p}%)",
+    diffLoose: "Looser ({p}%)",
+    diffSame: "Very close ({p}%)",
     noteTemplate:
 `【Estimated finished size if you knit as-is】
-Width: {w1} cm / Height: {h1} cm
+Width: {w1} {u} / Height: {h1} {u}
 
 【To match the pattern size (rule of thumb)】
-Target width {w} cm → {st} stitches
-Target height {h} cm → {rw} rows`,
-    diffTight: "Your gauge is tighter than the pattern ({p}%)",
-    diffLoose: "Your gauge is looser than the pattern ({p}%)",
-    diffSame: "Your gauge is very close to the pattern ({p}%)"
+Target width {w} {u} → {st} stitches
+Target height {h} {u} → {rw} rows`
   }
 };
 
-function currentLang(){
-  return localStorage.getItem("lang") || "ja";
+function currentLang(){ return localStorage.getItem("lang") || "ja"; }
+function currentUnit(){ return localStorage.getItem("unit") || "cm"; }
+
+function applyLang(){
+  const lang = currentLang();
+  const t = I18N[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    if(t[key]) el.textContent = t[key];
+  });
+
+  document.title = t.pageTitle;
+
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc) metaDesc.setAttribute("content", t.metaDesc);
+
+  // active state
+  document.getElementById("btnJa").classList.toggle("active", lang === "ja");
+  document.getElementById("btnEn").classList.toggle("active", lang === "en");
 }
 
 function setLang(lang){
   localStorage.setItem("lang", lang);
   applyLang();
+  // note/result language might depend on current selection; do not auto-recalc
 }
 
-function applyLang(){
-  const lang = currentLang();
-  const t = I18N[lang];
-
-  document.documentElement.lang = lang;
-
-  // text nodes
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.dataset.i18n;
-    if (t[key]) el.textContent = t[key];
+function applyUnitUI(){
+  const unit = currentUnit();
+  document.querySelectorAll("[data-unit]").forEach(el => {
+    el.textContent = (unit === "cm") ? "cm" : "inch";
   });
 
-  // <title> + meta description
-  const titleEl = document.querySelector("title");
-  if (titleEl) titleEl.textContent = t.pageTitle;
-
-  const metaDesc = document.querySelector('meta[name="description"]');
-  if (metaDesc) metaDesc.setAttribute("content", t.desc);
+  document.getElementById("btnCm").classList.toggle("active", unit === "cm");
+  document.getElementById("btnIn").classList.toggle("active", unit === "inch");
 }
-applyLang();
 
-/* ========= logic ========= */
+/* =========================
+   Unit conversion (inputs + outputs)
+   Internal calculations are always cm.
+========================= */
+const CM_PER_INCH = 2.54;
+
+function toCm(lengthVal, unit){
+  if(unit === "inch") return lengthVal * CM_PER_INCH;
+  return lengthVal;
+}
+function fromCm(cmVal, unit){
+  if(unit === "inch") return cmVal / CM_PER_INCH;
+  return cmVal;
+}
+function fmtLen(val){
+  // display length in current unit with reasonable precision
+  const unit = currentUnit();
+  return unit === "inch" ? (Math.round(val*100)/100).toFixed(2) : (Math.round(val*10)/10).toFixed(1);
+}
+
+function convertInputValues(fromUnit, toUnit){
+  // convert only width/height (length units). Gauge stays per 10cm.
+  const wEl = document.getElementById("wVal");
+  const hEl = document.getElementById("hVal");
+
+  const w = parseFloat(wEl.value);
+  const h = parseFloat(hEl.value);
+
+  if(Number.isFinite(w)){
+    const cm = toCm(w, fromUnit);
+    const next = fromCm(cm, toUnit);
+    wEl.value = (toUnit === "inch") ? next.toFixed(2) : next.toFixed(1);
+  }
+  if(Number.isFinite(h)){
+    const cm = toCm(h, fromUnit);
+    const next = fromCm(cm, toUnit);
+    hEl.value = (toUnit === "inch") ? next.toFixed(2) : next.toFixed(1);
+  }
+}
+
+function setUnit(unit){
+  const prev = currentUnit();
+  if(prev === unit) return;
+
+  convertInputValues(prev, unit);
+  localStorage.setItem("unit", unit);
+  applyUnitUI();
+}
+
+/* =========================
+   Calculator
+========================= */
 const $ = (id) => document.getElementById(id);
 
 function num(id){
   const v = parseFloat($(id).value);
   return Number.isFinite(v) ? v : null;
 }
-
 function fmtInt(n){ return Math.round(n).toString(); }
-function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+function fmtPct(n){
+  const abs = Math.abs(n);
+  return (Math.round(abs*10)/10).toFixed(1);
+}
 
 function calc(){
   const yourSt = num("yourSt");
   const yourRw = num("yourRw");
   const patSt  = num("patSt");
   const patRw  = num("patRw");
-  const wCm    = num("wCm");
-  const hCm    = num("hCm");
+  const wInUi  = num("wVal");
+  const hInUi  = num("hVal");
 
   const lang = currentLang();
+  const unit = currentUnit();
   const t = I18N[lang];
 
-  if([yourSt,yourRw,patSt,patRw,wCm,hCm].some(v => v === null || v <= 0)){
+  if([yourSt,yourRw,patSt,patRw,wInUi,hInUi].some(v => v === null || v <= 0)){
     $("outSt").textContent = "—";
     $("outRw").textContent = "—";
     $("outDiff").textContent = "—";
@@ -442,54 +549,63 @@ function calc(){
     return;
   }
 
-  // Pattern's stitch/row counts for target size
+  // Convert input lengths to cm for internal calcs
+  const wCm = toCm(wInUi, unit);
+  const hCm = toCm(hInUi, unit);
+
+  // Pattern stitch/row counts for the target size
   const patNeedSt = (patSt / 10) * wCm;
   const patNeedRw = (patRw / 10) * hCm;
 
-  // Convert to YOUR gauge (how many stitches/rows you need to hit same cm)
-  const needSt = (yourSt / 10) * wCm;
-  const needRw = (yourRw / 10) * hCm;
-
-  // Another way to communicate: required adjustment ratio vs pattern counts
-  // If pattern tells you "cast on patNeedSt", you may need to adjust by ratio (yourSt/patSt)
+  // Adjust pattern counts to your gauge
   const adjSt = patNeedSt * (yourSt / patSt);
   const adjRw = patNeedRw * (yourRw / patRw);
 
-  // If you follow pattern stitch count without adjusting, what's your finished size?
-  // finished width = (pattern stitch count) / (your stitches per 10cm) * 10
-  const finW = (patNeedSt / yourSt) * 10;
-  const finH = (patNeedRw / yourRw) * 10;
+  // If you knit the pattern counts as-is, what finished size would you get (in cm)?
+  const finWcm = (patNeedSt / yourSt) * 10;
+  const finHcm = (patNeedRw / yourRw) * 10;
 
-  // Gauge difference percentage (stitches and rows shown separately combined as short summary)
+  // Convert finished sizes back to UI unit for display
+  const finW = fromCm(finWcm, unit);
+  const finH = fromCm(finHcm, unit);
+
+  const targetW = fromCm(wCm, unit);
+  const targetH = fromCm(hCm, unit);
+
+  // Gauge difference %
   const diffStPct = ((yourSt - patSt) / patSt) * 100;
   const diffRwPct = ((yourRw - patRw) / patRw) * 100;
 
-  // Summarize as "tight/loose" mainly from stitches (width impact), with rows also in note
-  const abs = Math.abs(diffStPct);
   let diffText;
-  if(abs < 1.0) diffText = t.diffSame.replace("{p}", fmt1(diffStPct));
-  else if(diffStPct > 0) diffText = t.diffTight.replace("{p}", fmt1(diffStPct));
-  else diffText = t.diffLoose.replace("{p}", fmt1(Math.abs(diffStPct)));
+  if(Math.abs(diffStPct) < 1.0){
+    diffText = t.diffSame.replace("{p}", fmtPct(diffStPct));
+  }else if(diffStPct > 0){
+    diffText = t.diffTight.replace("{p}", fmtPct(diffStPct));
+  }else{
+    diffText = t.diffLoose.replace("{p}", fmtPct(diffStPct));
+  }
 
   $("outSt").textContent = `${fmtInt(adjSt)} st`;
   $("outRw").textContent = `${fmtInt(adjRw)} rows`;
-  $("outDiff").textContent = lang === "ja"
-    ? `${diffText} / 段差 ${fmt1(diffRwPct)}%`
-    : `${diffText} / rows ${fmt1(diffRwPct)}%`;
+  $("outDiff").textContent = (lang === "ja")
+    ? `${diffText} / 段差 ${ (Math.round(diffRwPct*10)/10).toFixed(1) }%`
+    : `${diffText} / rows ${(Math.round(diffRwPct*10)/10).toFixed(1)}%`;
 
+  const uLabel = (unit === "cm") ? "cm" : "inch";
   const note = t.noteTemplate
-    .replace("{w1}", fmt1(finW))
-    .replace("{h1}", fmt1(finH))
-    .replace("{w}", fmt1(wCm))
-    .replace("{h}", fmt1(hCm))
+    .replace("{w1}", fmtLen(finW))
+    .replace("{h1}", fmtLen(finH))
+    .replace("{w}",  fmtLen(targetW))
+    .replace("{h}",  fmtLen(targetH))
     .replace("{st}", fmtInt(adjSt))
-    .replace("{rw}", fmtInt(adjRw));
+    .replace("{rw}", fmtInt(adjRw))
+    .replaceAll("{u}", uLabel);
 
   $("outNote").textContent = note;
 }
 
 function resetAll(){
-  ["yourSt","yourRw","patSt","patRw","wCm","hCm"].forEach(id => $(id).value = "");
+  ["yourSt","yourRw","patSt","patRw","wVal","hVal"].forEach(id => $(id).value = "");
   $("outSt").textContent = "—";
   $("outRw").textContent = "—";
   $("outDiff").textContent = "—";
@@ -500,11 +616,23 @@ $("btnCalc").addEventListener("click", calc);
 $("btnReset").addEventListener("click", resetAll);
 
 // Enterキーでも計算
-["yourSt","yourRw","patSt","patRw","wCm","hCm"].forEach(id => {
+["yourSt","yourRw","patSt","patRw","wVal","hVal"].forEach(id => {
   $(id).addEventListener("keydown", (e) => {
     if(e.key === "Enter"){ e.preventDefault(); calc(); }
   });
 });
+
+/* init */
+(function init(){
+  applyLang();
+  applyUnitUI();
+
+  // set default active if nothing stored
+  document.getElementById("btnJa").classList.toggle("active", currentLang()==="ja");
+  document.getElementById("btnEn").classList.toggle("active", currentLang()==="en");
+  document.getElementById("btnCm").classList.toggle("active", currentUnit()==="cm");
+  document.getElementById("btnIn").classList.toggle("active", currentUnit()==="inch");
+})();
 </script>
 </body>
 </html>
