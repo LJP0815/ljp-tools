@@ -6,7 +6,7 @@
   <link rel="icon" href="/favicon.png">
 
   <title>Knitting Tools by LemonJellyPool</title>
-  <meta name="description" content="Free, lightweight knitting tools: Strand Maker and Gauge Converter by LemonJellyPool." />
+  <meta name="description" content="Free, lightweight knitting tools: Strand Maker and Gauge tools by LemonJellyPool." />
   <meta name="robots" content="index,follow" />
 
   <style>
@@ -103,6 +103,7 @@
     @media(min-width: 820px){
       main{ grid-template-columns: 1fr 1fr; gap:16px; }
     }
+
     .card{
       background: var(--bg);
       border: 1px solid var(--border);
@@ -112,7 +113,13 @@
       display:flex;
       flex-direction:column;
       gap:10px;
-      min-height: 160px;
+      min-height: 170px;
+      position: relative;
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .card:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.08);
     }
     .card h2{
       margin:0;
@@ -139,6 +146,7 @@
       border-radius: 999px;
       font-weight: 700;
     }
+
     .actions{
       margin-top:auto;
       display:flex;
@@ -167,6 +175,18 @@
       color:#fff;
     }
     .btn.primary:hover{ background: var(--accent2); }
+
+    /* Card whole-clickable link */
+    .card-link{
+      position:absolute;
+      inset:0;
+      border-radius: var(--radius);
+      z-index: 0;
+    }
+    .card > *:not(.card-link){
+      position: relative;
+      z-index: 1;
+    }
 
     .note{
       margin-top: 14px;
@@ -218,6 +238,7 @@
     <main>
       <!-- Strand Maker -->
       <section class="card">
+        <a class="card-link" href="/strand/" aria-label="Open Strand Maker"></a>
         <h2>🧶 <span data-i18n="strandTitle">ひきそろえメーカー</span></h2>
         <p data-i18n="strandDesc">目標の太さに近づくように、手持ち糸の引き揃え候補を提案します。</p>
 
@@ -234,6 +255,7 @@
 
       <!-- Gauge Converter -->
       <section class="card">
+        <a class="card-link" href="/swatch/" aria-label="Open Gauge Converter"></a>
         <h2>📏 <span data-i18n="swatchTitle">ゲージ変換ツール</span></h2>
         <p data-i18n="swatchDesc">あなたのゲージとパターン指定ゲージの差から、必要な目数・段数や仕上がり差を計算します。</p>
 
@@ -247,8 +269,30 @@
           <a class="btn primary" href="/swatch/" data-i18n="openTool">ツールを開く</a>
         </div>
       </section>
+
+      <!-- Needle Size Advisor -->
+      <section class="card">
+        <a class="card-link" href="/needle-size/" aria-label="Open Needle Size Advisor"></a>
+        <h2>🪡 <span data-i18n="needleTitle">針サイズアドバイザー</span></h2>
+        <p data-i18n="needleDesc">ゲージ（目数・段数）から、指定ゲージに近づくための推奨針サイズを提案します。</p>
+
+        <div class="meta">
+          <span class="tag" data-i18n="tagFree">無料</span>
+          <span class="tag" data-i18n="tagBilingual">JP/EN</span>
+          <span class="tag" data-i18n="tagUnits">cm/inch</span>
+        </div>
+
+        <div class="actions">
+          <a class="btn primary" href="/needle-size/" data-i18n="openTool">ツールを開く</a>
+        </div>
+      </section>
+
+      <!-- (次のツールはここにカードをコピペして追加) -->
     </main>
 
+    <div class="note" data-i18n="note">
+      このページは「ツールの入口」です。今後ツールが増えたら、ここにカードを追加していくだけでOKです。
+    </div>
 
     <footer>
       <span data-i18n="footerPrefix">by</span>
@@ -262,36 +306,57 @@ const I18N = {
   ja: {
     title: "Knitting Tools by LemonJellyPool",
     subtitle: "静かに、軽く、よく効く。編み物の計算ツール集。",
+
     strandTitle: "ひきそろえメーカー",
     strandDesc: "目標の太さに近づくように、手持ち糸の引き揃え候補を提案します。",
+
     swatchTitle: "ゲージ変換ツール",
     swatchDesc: "あなたのゲージとパターン指定ゲージの差から、必要な目数・段数や仕上がり差を計算します。",
+
+    needleTitle: "針サイズアドバイザー",
+    needleDesc: "ゲージ（目数・段数）から、指定ゲージに近づくための推奨針サイズを提案します。",
+
     openTool: "ツールを開く",
-    howTo: "使い方",
+
     note: "このページは「ツールの入口」です。今後ツールが増えたら、ここにカードを追加していくだけでOKです。",
+
     footerPrefix: "by",
+
     tagFree: "無料",
     tagFast: "高速",
     tagNoLogin: "ログイン不要",
     tagBilingual: "JP/EN",
-    tagUnits: "cm/inch"
+    tagUnits: "cm/inch",
+
+    metaDesc: "無料で軽量な編み物ツール集：ひきそろえメーカー、ゲージ変換、針サイズアドバイザー（LemonJellyPool）"
   },
+
   en: {
     title: "Knitting Tools by LemonJellyPool",
     subtitle: "Quiet, lightweight tools that do the job—made for knitters.",
+
     strandTitle: "Strand Maker",
     strandDesc: "Suggests strand combinations to match your target yarn thickness.",
+
     swatchTitle: "Gauge Converter",
     swatchDesc: "Converts stitch/row counts and estimates size differences based on your gauge vs the pattern gauge.",
+
+    needleTitle: "Needle Size Advisor",
+    needleDesc: "Suggests a needle-size range based on stitch/row gauge differences.",
+
     openTool: "Open tool",
-    howTo: "How to use",
+
     note: "This is the hub page. When you add new tools, just add another card here.",
+
     footerPrefix: "by",
+
     tagFree: "Free",
     tagFast: "Fast",
     tagNoLogin: "No login",
     tagBilingual: "JP/EN",
-    tagUnits: "cm/inch"
+    tagUnits: "cm/inch",
+
+    metaDesc: "Free, lightweight knitting tools: Strand Maker, Gauge Converter, and Needle Size Advisor by LemonJellyPool."
   }
 };
 
@@ -306,6 +371,10 @@ function applyLang(){
     const key = el.dataset.i18n;
     if(t[key]) el.textContent = t[key];
   });
+
+  // meta description also switches (small SEO help)
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc && t.metaDesc) metaDesc.setAttribute("content", t.metaDesc);
 
   document.getElementById("btnJa").classList.toggle("active", lang === "ja");
   document.getElementById("btnEn").classList.toggle("active", lang === "en");
