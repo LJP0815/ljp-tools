@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="title">🧶 針サイズアドバイザー｜Needle Size Advisor</title>
   <meta name="description" content="ゲージ（目数・段数）と現在の針サイズから、指定ゲージに近づくための推奨針サイズを提案します。" />
+  <link rel="icon" href="../favicon.png">
 
   <style>
     .container {
@@ -413,27 +414,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const stitchRatio = ySt / pSt;              // >1 => tighter (more stitches) => need larger needle
     const recNeedle = needle * stitchRatio;
 
-    const smallDiff = relDiff(ySt, pSt) <= 0.05; // within 3% => basically fine
+    const smallDiff = relDiff(ySt, pSt) <= 0.03; // within 3% => basically fine
 
     // direction
     const directionText = (ySt > pSt) ? t.directionUp : t.directionDown;
 
     // build outputs
     if (smallDiff) {
-    sub2.innerHTML = `<span class="ok">${
-      currentLang === "ja"
-      ? "指定ゲージにほぼ一致しています 👍"
-      : "Your stitch gauge is very close 👍"
-  }</span>`;
-  } else {
-    headline.innerHTML = `<span class="warn">${
-      currentLang === "ja"
-        ? "指定ゲージと異なります 👉"
-        : "Your stitch gauge is different 👉"
-    }</span>`;
-  }
-}
-
+      headline.textContent = t.keepNeedle;
+    } else {
+      const [lo, hi] = needleRange(recNeedle);
+      headline.textContent = t.tryNeedle(formatMm(lo), formatMm(hi));
+    }
 
     // detail pills
     const unitText = (currentUnit === "cm") ? (currentLang==="ja" ? "10cm" : "10 cm") : (currentLang==="ja" ? "4inch" : "4 in");
@@ -442,9 +434,16 @@ document.addEventListener("DOMContentLoaded", () => {
       `<span class="pill">${t.rowDelta(pRow, yRow)} / ${unitText}</span>` +
       `<span class="pill">${currentLang==="ja" ? "現在の針" : "Current needle"}: ${formatMm(needle)} mm</span>`;
 
-    sub2.innerHTML = smallDiff
-      ? `<span class="ok">${directionText}</span>`
-      : `<span class="warn">${directionText}</span>`;
+    // direction line (sub2)
+    if (smallDiff) {
+      sub2.innerHTML = `<span class="ok">${
+        currentLang === "ja"
+          ? "指定ゲージにほぼ一致しています 👍"
+          : "Your stitch gauge is very close 👍"
+      }</span>`;
+    } else {
+      sub2.innerHTML = `<span class="warn">${directionText}</span>`;
+    }
 
     // row analysis
     const rowDiffOk = relDiff(yRow, pRow) <= 0.05; // within 5%
