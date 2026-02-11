@@ -413,18 +413,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const stitchRatio = ySt / pSt;              // >1 => tighter (more stitches) => need larger needle
     const recNeedle = needle * stitchRatio;
 
-    const smallDiff = relDiff(ySt, pSt) <= 0.03; // within 3% => basically fine
+    const smallDiff = relDiff(ySt, pSt) <= 0.05; // within 3% => basically fine
 
     // direction
     const directionText = (ySt > pSt) ? t.directionUp : t.directionDown;
 
     // build outputs
     if (smallDiff) {
-      headline.textContent = t.keepNeedle;
-    } else {
-      const [lo, hi] = needleRange(recNeedle);
-      headline.textContent = t.tryNeedle(formatMm(lo), formatMm(hi));
-    }
+    sub2.innerHTML = `<span class="ok">${
+      currentLang === "ja"
+      ? "指定ゲージにほぼ一致しています 👍"
+      : "Your stitch gauge is very close 👍"
+  }</span>`;
+  } else {
+    headline.innerHTML = `<span class="warn">${
+      currentLang === "ja"
+        ? "指定ゲージと異なります 👉"
+        : "Your stitch gauge is different 👉"
+    }</span>`;
+  }
+}
+
 
     // detail pills
     const unitText = (currentUnit === "cm") ? (currentLang==="ja" ? "10cm" : "10 cm") : (currentLang==="ja" ? "4inch" : "4 in");
